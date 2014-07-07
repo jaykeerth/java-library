@@ -371,8 +371,8 @@ class TreeNode
 		{
 		int index = search(inorder, root, left, right);
 		printPostorderFromInorderPreorderUtil(inorder, preorder, left, index-1, size);		
-        printPostorderFromInorderPreorderUtil(inorder, preorder, index+1, right, size);
-        System.out.println(root);
+                printPostorderFromInorderPreorderUtil(inorder, preorder, index+1, right, size);
+                System.out.println(root);
 		}
 	}
 	
