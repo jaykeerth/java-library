@@ -1,0 +1,1185 @@
+/********************************/
+/***** AUTHOR: JAY KEERTH ******/
+/*******************************/
+
+package bst;
+import java.util.*;
+public class TreeNode {
+	int data;
+	TreeNode left;
+	TreeNode right;
+	public static boolean hasOnlyOneChild(int[] preorder)
+	{
+		int temp1, temp2;
+		for(int i=0; i<preorder.length; i++)
+		{
+			temp1 = preorder[i] - preorder[i+1];
+			temp2 = preorder[i] - preorder[preorder.length - 1];
+			if(temp1 * temp2 < 0)
+				return false;
+		}
+		return true;
+	}
+	public static boolean hasOnlyOneChild2(int[] preorder)
+	{
+		int min, max;
+		int size = preorder.length;
+		if(preorder[size-1] < preorder[size-2])
+		{
+			min = preorder[size-1];
+			max = preorder[size-2];
+		}
+		else
+		{
+			min = preorder[size-2];
+			max = preorder[size-1];
+		}
+		for(int i = size-3; i>=0; i--)
+		{
+			if(preorder[i] < min)
+				min = preorder[i];
+			else if(preorder[i] > max)
+				max = preorder[i];
+			else
+				return false;
+		}
+		return true;
+	}
+	public static TreeNode mergeBSTs3(TreeNode root1, TreeNode root2)     // Time Complexity: O(m+n) . Uses Extra space for arrays.
+	{
+		if(root1 == null)
+			return root2;
+		if(root2 == null)
+			return root1;
+		storeInorder(root1);
+		int[] inorder1 = inorder;
+		storeInorder(root2);
+		int[] inorder2 = inorder;
+		int[] mergedInorder = mergeArray(inorder1, inorder2);
+		return sortedArrayToBST2(mergedInorder);
+	}
+	public static int[] mergeArray(int[] inorder1, int[] inorder2)
+	{
+		int size1 = inorder1.length, size2 = inorder2.length;
+		int i = 0, j = 0, k = 0;
+		int [] result = new int[size1+size2];
+		while(i < size1 && j < size2)
+		{
+			if(inorder1[i] <= inorder2[j])   //will include duplicates because we want to merge two trees without leaving any node.
+			{
+				result[k] = inorder1[i];
+				i++;
+			}
+			else
+			{
+				result[k] = inorder2[j];
+				j++;
+			}
+			k++;
+		}
+		while(i < size1)
+		{
+			result[k] = inorder1[i];
+			i++;
+			k++;
+		}
+		while(j < size2)
+		{
+			result[k] = inorder2[j];
+			j++;
+			k++;
+		}
+		return result;
+	}
+	/* For merging two BSTs in-place by converting into doubly linkedlist */
+	static TreeNode mergedHead = null;
+	public static TreeNode mergeBSTs2(TreeNode root1, TreeNode root2)        // Time Complexity: O(m+n) . In-Place.
+	{
+		if(root1 == null)
+			return root2;
+		if(root2 == null)
+			return root1;
+		convertBSTToDoublyInPlace(root1);
+		TreeNode head1 = head;
+		convertBSTToDoublyInPlace(root2);
+		TreeNode head2 = head;
+		TreeNode temp = mergeLinkedList(head1, head2);
+		mergedHead = temp;
+		return sortedDoublyToBST2();
+	}
+	public static TreeNode mergeLinkedList(TreeNode head1, TreeNode head2)
+	{
+		if(head1 == null)
+			return head2;
+		if(head2 == null)
+			return head1;
+		TreeNode result = null;
+		if(head1.data <= head2.data)
+		{
+			result = head1;
+			result.right = mergeLinkedList(head1.right, head2);
+		}
+		else
+		{
+			result = head2;
+			result.right = mergeLinkedList(head2.right, head1);
+		}
+		return result;
+	}
+	public static TreeNode sortedDoublyToBST2()
+	{
+		int size = countNodesDLL(mergedHead);
+		return sortedDoublyToBST2Util(size);
+	}
+	public static TreeNode sortedDoublyToBST2Util(int size)
+	{
+		if(size <= 0)
+			return null;
+		TreeNode leftSide = sortedDoublyToBST2Util(size/2);
+		TreeNode root = mergedHead;
+		root.left = leftSide;
+		mergedHead = mergedHead.right;
+		root.right = sortedDoublyToBST2Util(size - size/2 - 1);
+		return root;
+	}
+	public static int countNodesDLL(TreeNode mergedHead)
+	{
+		if(mergedHead == null)
+			return 0;
+		int count = 0;
+		TreeNode temp = mergedHead;
+		while(temp != null)
+		{
+			temp = temp.right;
+			count++;
+		}
+		return count;
+	}
+	public static void mergeBSTs(TreeNode root1, TreeNode root2)
+	{
+		if(root1 == null)
+		{
+			inorderIterative1(root2);
+			return;
+		}
+		if(root2 == null)
+		{
+			inorderIterative1(root1);
+			return;
+		}
+		Stack<TreeNode> st1 = new Stack<TreeNode>();
+		Stack<TreeNode> st2 = new Stack<TreeNode>();
+		while(root1 != null || root2 != null || !st1.isEmpty() || !st2.isEmpty())
+		{
+			if(root1 != null || root1 != null)
+			{
+				if(root1 != null)
+				{
+					st1.push(root1);
+					root1 = root1.left;
+				}
+				if(root2 != null)
+				{
+					st2.push(root2);
+					root2 = root2.left;
+				}
+			}
+			else
+			{
+				if(st1.isEmpty())
+				{
+					while(!st2.isEmpty())
+					{
+						TreeNode temp1 = st2.pop();
+						temp1.left = null;
+						inorderIterative1(temp1);
+					}
+					return;
+				}
+				if(st2.isEmpty())
+				{
+					while(!st1.isEmpty())
+					{
+						TreeNode temp2 = st1.pop();
+						temp2.left = null;
+						inorderIterative1(temp2);
+					}
+					return;
+				}
+				root1 = st1.pop();
+				root2 = st2.pop();
+				if(root1.data < root2.data)
+				{
+					System.out.println(root1.data);
+					root1 = root1.right;
+					st2.push(root2);
+					root2 = null;
+				}
+				else
+				{
+					System.out.println(root2.data);
+					root2 = root2.right;
+					st1.push(root1);
+					root1 = null;
+				}				
+			}
+		}
+	}
+	public static void inorderIterative1(TreeNode root)
+	{
+		if(root == null)
+			return;
+		Stack<TreeNode> st = new Stack<TreeNode>();
+		st.push(root);
+		while(!st.isEmpty())
+		{
+			while(root != null)
+			{
+				if(root.left != null)
+				    st.push(root.left);
+				root = root.left;
+			}
+			TreeNode temp = st.pop();                          // root = st.pop();
+			System.out.println(temp.data);                     // System.out.println(root.data);
+			if(temp.right != null)                             // if(root.right != null)
+			{                                                  //     st.push(root.right);
+				st.push(temp.right);                           // root = root.right;
+				root = temp.right;
+			}
+		}
+	}
+	public static void inorderIterative2(TreeNode root)
+	{
+		if(root == null)
+			return;
+		Stack<TreeNode> st = new Stack<TreeNode>();
+		while(root != null || !st.isEmpty())
+		{
+			while(root != null)
+			{
+				st.push(root);
+				root = root.left;
+			}
+			root = st.pop();
+			System.out.println(root.data);
+			root = root.right;
+		}
+	}
+	public static void inorderIterative3(TreeNode root)
+	{
+		if(root == null)
+			return;
+		Stack<TreeNode> st = new Stack<TreeNode>();
+		while(root != null || !st.isEmpty())
+		{
+			if(root != null)
+			{
+				st.push(root);
+				root = root.left;
+			}
+			else
+			{
+				if(st.isEmpty())
+					return;
+				else
+				{
+					root = st.pop();
+					System.out.println(root.data);
+					root = root.right;
+				}
+			}
+		}
+	}
+	public static void inorderIterative4(TreeNode root)
+	{
+		if(root == null)
+			return;
+		Stack<TreeNode> st = new Stack<TreeNode>();
+		boolean done = false;
+		while(done == false)
+		{
+			if(root != null)
+			{
+				st.push(root);
+				root = root.left;
+			}
+			else
+			{
+				if(st.isEmpty())
+					done = true;
+				else
+				{
+					root = st.pop();
+					System.out.println(root.data);
+					root = root.right;
+				}
+			}
+		}
+	}
+	public static boolean findZeroTriplet(TreeNode root)
+	{
+		if(root == null)
+			return false;
+		convertBSTToDoublyInPlace(root);
+		while(head.right != tail && head.data <= 0)
+		{
+			if(findSumPairDoubly(head.right, tail, -1 * head.data))
+			{
+				System.out.println(head.data);
+				return true;
+			}
+			else
+				head = head.right;
+		}
+		return false;
+	}
+	static TreeNode head = null, tail = null;
+	public static void convertBSTToDoublyInPlace(TreeNode root)
+	{
+		if(root == null)
+			return;
+		if(root.left != null)
+			convertBSTToDoublyInPlace(root.left);
+		if(tail != null)
+			tail.right = root;
+		else
+			head = root;
+		root.left = tail;
+		tail = root;
+		if(root.right != null)
+			convertBSTToDoublyInPlace(root.right);
+	}
+	public static boolean findSumPairDoubly(TreeNode head, TreeNode tail, int sum)
+	{
+		if(head == null)
+			return (sum == 0);
+		int val;
+		while(head != tail)
+		{
+			val = head.data + tail.data;
+			if(val == sum)
+			{
+				System.out.println(head.data);
+				System.out.println(tail.data);
+				return true;
+			}
+			else if(val < sum)
+				head = head.right;
+			else
+				tail = tail.left;
+		}
+		return false;
+	}
+	public static boolean findSumPair(TreeNode root, int sum)
+	{
+		if(root == null)
+			return (sum == 0);
+		TreeNode curr1 = root, curr2 = root;
+		int val1 = 0, val2 = 0;
+		Boolean done1 = false, done2 = false;
+		Stack<TreeNode> st1 = new Stack<TreeNode>();
+		Stack<TreeNode> st2 = new Stack<TreeNode>();
+		while(true)
+		{
+			while(done1 == false)
+			{
+				if(curr1 != null)
+				{
+					st1.push(curr1);
+					curr1 = curr1.left;
+				}
+				else
+				{
+					if(st1.isEmpty())
+						done1 = true;
+					else
+					{
+						curr1 = st1.pop();
+						val1 = curr1.data;
+						curr1 = curr1.right;
+						done1 = true;
+					}
+				}
+			}
+			while(done2 == false)
+			{
+				if(curr2 != null)
+				{
+					st2.push(curr2);
+					curr2 = curr2.right;
+				}
+				else
+				{
+					if(st2.isEmpty())
+						done2 = true;
+					else
+					{
+						curr2 = st2.pop();
+						val2 = curr2.data;
+						curr2 = curr2.left;
+						done2 = true;
+					}
+				}
+			}
+			if(val1 != val2 && val1+val2 == sum)
+			{
+				System.out.println("Found pair: "+val1+","+val2);
+				
+			}
+			else if(val1 + val2 < sum)
+				done1 = false;
+			else if(val1 + val2 > sum)
+				done2 = false;
+			if(val1 >= val2)
+				return false;			
+		}
+	}
+	public static boolean isIdentical(int[] a, int[] b)
+	{
+		int size = a.length;
+		int min = Integer.MAX_VALUE;
+		int max = Integer.MIN_VALUE;
+		return isIdenticalUtil(a, b, size, 0, 0, min, max);
+	}
+	public static boolean isIdenticalUtil(int[] a, int[] b, int size, int index1, int index2, int min, int max)
+	{
+		int j, k;
+		for(j=index1; j<size; j++)
+			if(a[j] > min && a[j] < max)
+				break;
+		for(k=index2; k<size; k++)
+			if(b[k] > min && b[k] < max)
+				break;
+		if(j == size && k == size)
+			return true;
+		if(((j == size) ^ (k == size)) || (a[j] != b[k]))
+				return false;                                    // If there are no elements in the left subtree, search from the initial index in the right subtree - check reason
+		return isIdenticalUtil(a, b, size, index1+1, index2+1, min, a[j]) && isIdenticalUtil(a, b, size, index1+1, index2+2, a[j], max);
+	}
+	
+	/* For finding the largest BST subtree (size) in a given tree */ 
+	static boolean isBSTFlag = false;
+	static int minRef = Integer.MAX_VALUE;
+	static int maxRef = Integer.MIN_VALUE;
+	static int maxSize = Integer.MIN_VALUE;
+	public static int largestBST2(TreeNode root)      // Time Complexity: O(n)
+	{
+		if(root == null)
+		{
+			isBSTFlag = true;
+			return 0;
+		}
+		
+		int leftSize, rightSize = 0;
+		boolean leftFlag = false, rightFlag = false;
+		int min = Integer.MAX_VALUE;
+		
+		maxRef = Integer.MIN_VALUE;
+		
+		leftSize = largestBST2(root.left);
+		if(isBSTFlag == true && root.data > maxRef)
+			leftFlag = true;
+		
+		min = minRef;
+		minRef = Integer.MAX_VALUE;
+		
+		rightSize = largestBST2(root.right);
+		if(isBSTFlag == true && root.data < minRef)
+			rightFlag = true;
+		
+		if(min < minRef)
+			minRef = min;
+		if(root.data < minRef)
+			minRef = root.data;
+		if(root.data > maxRef)
+			maxRef = root.data;
+		
+		if(leftFlag && rightFlag)
+		{
+			if(leftSize+rightSize+1 > maxSize)
+				maxSize = leftSize+rightSize+1;
+			return leftSize+rightSize+1;
+		}
+		else
+		{
+			isBSTFlag = false;
+			return 0;
+		}		
+	}
+	public static int largestBST(TreeNode root)
+	{
+		if(isBST(root) == true)
+			return countTreeNodes(root);
+		return Math.max(largestBST(root.left), largestBST(root.right));
+	}	
+	public static int countBSTs(int n)    // Catalan Number = (2n)! / n! * (n+1)!
+	{                                     // Number of different ways of forming valid parenthesis with n given pairs. If n = 3, Catalan number is 5. Also, catalan number of 'n' is the number of diff ways of parenthesizing n+1 numbers, ie., For {1,2,3,4}, there are 5 ways (catalan number of 3) of parenthesizing these numbers. 
+		if(n <= 1)                        // Catalan Number of 'n' is the number of full binary trees(0 or 2 children) that can be formed with n+1 leaves.
+			return 1;                     // Catalan Number of 'n' is the number of monotonic paths along the edges of a n*n grid which do not pass above the diagonal.
+		int sum = 0;                      // Catalan numbers starting from 0 = 1,1,2,5,14...
+		for(int root=0; root<n; root++)   // Catalan Number of 'n' is the number of ways to tile a stairstep shape of height n with n rectangles.
+		{                                             
+			int left = countBSTs(root);
+			int right = countBSTs(n-root-1);
+			sum += (left * right);
+		}
+		return sum;
+	}
+	/* For converting binary tree to a BST. */
+	static TreeNode bstRoot = null;
+	public static TreeNode binaryToBST(TreeNode root)
+	{
+		if(root == null)
+			return null;
+		int[] inorder = storeInorder(root);
+		Arrays.sort(inorder);
+		bstRoot = root;
+		copyInorder(bstRoot, inorder);
+		return bstRoot;
+	}
+	
+	static int inIndex = 0;
+	static int[] inorder;
+	
+	public static int[] storeInorder(TreeNode root)
+	{
+		int size = countTreeNodes(root);
+		inorder = new int[size+1];
+		return inorder;
+	}
+	public static void storeInorderUtil(TreeNode root)
+	{
+		if(root == null)
+			return;
+		storeInorderUtil(root.left);
+		inorder[inIndex++] = root.data;
+		storeInorderUtil(root.right);	
+	}
+	public static void copyInorder(TreeNode bstRoot, int[] inorder)
+	{
+		if(bstRoot == null)
+			return;
+		copyInorder(bstRoot.left, inorder);
+		bstRoot.data = inorder[inIndex++];
+		copyInorder(bstRoot.right, inorder);
+	}
+	public static int countTreeNodes(TreeNode node)
+	{
+		if(node == null)
+			return 0;
+		return countTreeNodes(node.left) + 1 + countTreeNodes(node.right);
+		
+	}
+	
+	/* For converting sorted Doubly linked list into Balanced BST in-place - without creating TreeNode */
+	static DoublyLinked myheadDoubly = null;
+	public static DoublyLinked sortedDoublyToBST(DoublyLinked head)
+	{
+		myheadDoubly = head;
+		int size = myheadDoubly.countNodes(myheadDoubly);
+		return sortedDoublyToBSTUtil(size);
+	}
+	public static DoublyLinked sortedDoublyToBSTUtil(int size)
+	{
+		if(size <= 0)
+			return null;
+		DoublyLinked leftside = sortedDoublyToBSTUtil(size/2);
+		DoublyLinked root = myheadDoubly;
+		root.prev = leftside;
+		myheadDoubly = myheadDoubly.next;
+		root.next = sortedDoublyToBSTUtil(size - size/2 - 1);
+		return root;
+	}
+	
+	/* For constructing Balanced BST from sorted linked list. */
+	static LinkedListNode myhead = null;
+	public static TreeNode sortedLinkedToBST(LinkedListNode head)
+	{
+		myhead = head;
+		int size = head.countNodes(head);  // count linkedlist nodes
+		return sortedLinkedToBSTUtil(size);
+	}
+	public static TreeNode sortedLinkedToBSTUtil(int size)
+	{
+		if(size <= 0)
+			return null;
+		TreeNode leftside = sortedLinkedToBSTUtil(size/2);
+		TreeNode root = new TreeNode(myhead.data);
+		root.left = leftside;
+		myhead = myhead.next;
+		root.right = sortedLinkedToBSTUtil(size - size/2 - 1);
+		return root;
+	}
+    public static TreeNode preorderToBSTIterative(int[] pre)
+    {
+    	int size = pre.length;
+    	TreeNode root = new TreeNode(pre[0]);
+    	Stack<TreeNode> st = new Stack<TreeNode>();
+    	st.push(root);
+    	TreeNode temp = null;
+    	for(int i=1; i<size; i++)
+    	{
+    		while(!st.isEmpty() && pre[i] > st.peek().data)
+    			temp = st.pop();
+    		if(temp != null)
+    		{
+    			temp.right = new TreeNode(pre[i]);
+    			st.push(temp.right);
+    		}
+    		else
+    		{
+    			st.peek().left = new TreeNode(pre[i]);
+    			st.push(st.peek().left);
+    		}
+    	}
+    	return root;
+    }
+    
+    /* For constructing BST from preorder. Both recursive methods. */
+    static int preIndex = 0;
+    public static TreeNode preorderToBST2(int[] pre)
+    {
+    	int size = pre.length;
+    	int min = Integer.MIN_VALUE;
+    	int max = Integer.MAX_VALUE;
+    	return preorderToBST2Util(pre, pre[0], min, max, size);
+    }
+    public static TreeNode preorderToBST2Util(int[] pre, int firstElem, int min, int max, int size)
+    {
+    	if(preIndex >= size)
+    		return null;
+    	TreeNode root = null;
+    	if(firstElem > min && firstElem < max)
+    	{
+    		root = new TreeNode(firstElem);
+    		preIndex++;
+    		if(preIndex < size)
+    		{
+    			root.left = preorderToBST2Util(pre, pre[preIndex], min, firstElem, size);
+    			root.right = preorderToBST2Util(pre, pre[preIndex], firstElem, max, size);
+    		}
+    	}
+    	return root;
+    }
+    
+	public static TreeNode preorderToBST(int[] pre)
+	{
+		int start = 0, end = pre.length-1, size = pre.length;
+		return preorderToBSTUtil(pre, start, end, size);
+	}
+	public static TreeNode preorderToBSTUtil(int[] pre, int start, int end, int size)
+	{
+		if(preIndex >= size || start > end)
+			return null;
+		TreeNode root = new TreeNode(pre[preIndex++]);
+		if(start == end)
+			return root;
+		int i;
+		for(i = start; i<=end; i++)
+		{
+			if(pre[i] > root.data)
+				break;
+		}
+		root.left = preorderToBSTUtil(pre, start, i-1, size);
+		root.right = preorderToBSTUtil(pre, i, end, size);
+		return root;
+	}
+	
+	/* For correcting two swapped nodes in a bst */
+	static TreeNode prev_SwapNodes, first, middle, last, myroot = null;
+	public static TreeNode correctSwapNodesBST(TreeNode root)
+	{
+        myroot = root;
+		correctSwapNodesBSTUtil(myroot);
+		if(first != null && last != null)
+			swap(first, last);
+		else if(first != null && middle != null)
+			swap(first, middle);
+		return myroot;
+	}
+	public static void correctSwapNodesBSTUtil(TreeNode root)
+	{
+		if(root == null)
+			return;
+		correctSwapNodesBSTUtil(root.left);
+		if(prev_SwapNodes != null && prev_SwapNodes.data > root.data)
+		{
+			if(first == null)
+			{
+				first = prev_SwapNodes;
+				middle = root;
+				System.out.println("Value of first:"+first+" Value of middle:"+middle);
+			}
+			else
+			{
+				last = root;
+				System.out.println("Value of last: "+last);
+			}
+		}
+		prev_SwapNodes = root;
+		correctSwapNodesBSTUtil(root.right);
+	}
+	public static void swap(TreeNode node1, TreeNode node2)
+	{
+		int temp = node1.data;
+		node1.data = node2.data;
+		node2.data = temp;
+	}
+	public static TreeNode removeNodesOutsideRange(TreeNode root, int k1, int k2)
+	{
+		if(root == null)
+			return null;
+		root.left = removeNodesOutsideRange(root.left, k1, k2);
+		root.right = removeNodesOutsideRange(root.right, k1, k2);
+		if(root.data < k1)
+		{
+			TreeNode temp1 = root.right;
+			root = null;
+			return temp1;
+		}
+		if(root.data > k2)
+		{
+			TreeNode temp2 = root.left;
+			root = null;
+			return temp2;
+		}
+		return root;
+	}
+	
+	/* For adding all greater values to each node in a bst */
+	static int sum = 0;
+	public static void addGreaterValuesToNode(TreeNode root)
+	{
+		if(root == null)
+			return;
+		addGreaterValuesToNode(root.right);
+		sum = sum + root.data;
+		root.data = sum;
+		addGreaterValuesToNode(root.left);
+	}
+	
+	/* For constructing Balanced BST from sorted array. Method 2. Bottom-up. */
+	static int inorderIndex = 0;
+	public static TreeNode sortedArrayToBST2(int[] arr)
+	{
+		int size = arr.length;
+		return sortedArrayToBST2Util(arr, size);
+	}
+	public static TreeNode sortedArrayToBST2Util(int[] arr, int size)
+	{
+		if(size <= 0)
+			return null;
+		TreeNode tempLeft = sortedArrayToBST2Util(arr, size/2);
+		TreeNode root = new TreeNode(arr[inorderIndex]);
+		root.left = tempLeft;
+		inorderIndex++;
+		root.right = sortedArrayToBST2Util(arr, size-(size/2)-1);
+		return root;
+	}
+	public static TreeNode sortedArrayToBST(int[] arr)
+	{
+		int start = 0, end = arr.length-1;
+		return sortedArrayToBSTUtil(arr, start, end);
+	}
+	public static TreeNode sortedArrayToBSTUtil(int[] arr, int start, int end)
+	{
+		if(start > end)
+			return null;
+		//int mid = (start + end)/2;   // wont work for all. Should use ceil value.
+		int sum = start + end;
+		int floor = sum /2;
+		int ceiling = floor + sum - floor * 2;   //not working for 3,5,6,10,15
+		TreeNode root = new TreeNode(arr[ceiling]);
+		root.left = sortedArrayToBSTUtil(arr, start, ceiling - 1);
+		root.right = sortedArrayToBSTUtil(arr, ceiling + 1 , end);
+		return root;
+	}
+	public static int floorBST(TreeNode root, int target)
+	{
+		if(root == null)
+			return -1;
+		if(root.data == target)
+			return root.data;
+		if(target < root.data)
+			return floorBST(root.left, target);
+		int floor = floorBST(root.right, target);
+		return (floor <= target)? floor: root.data;
+	}
+	public static int ceilBST(TreeNode root, int target)
+	{
+		if(root == null)
+			return -1;
+		if(root.data == target)
+			return root.data;
+		if(target > root.data)
+			return ceilBST(root.right, target);
+		int ceil = ceilBST(root.left, target);
+		return (ceil >= target)? ceil: root.data;
+	}
+	public static void printBSTKeysInRange(TreeNode root, int k1, int k2)
+	{
+		if(root == null)
+			return;
+		if(k1 < root.data)
+			printBSTKeysInRange(root.left, k1, k2);
+		if(k1 <= root.data && k2 >= root.data)         // this would include the boundary values of k1 and k2 also in the range. But the other way (root.data > k1) will not.
+			System.out.println(root.data);
+		if(k2 > root.data)
+			printBSTKeysInRange(root.right, k1, k2);
+	}
+	public static int kthInorderIterative(TreeNode root, int k) /* No static variables used */
+	{
+		if(root == null)
+			return -1;
+		Stack<TreeNode> st = new Stack<TreeNode>();
+		st.push(root);
+		while(!st.isEmpty())
+		{
+			while(root != null)
+			{
+				if(root.left != null)
+					st.push(root.left);
+				root = root.left;
+			}
+			TreeNode temp = st.pop();
+			if(k == 1)
+				return temp.data;
+			else
+				k--;
+			if(temp.right != null)
+			{
+				st.push(temp.right);
+				root = temp.right;
+			}
+		}
+		return -1;
+	}
+	
+	/* For finding kth smallest number in a bst */
+	static int count = 1;
+	public static int kthInorder(TreeNode root, int k)
+	{
+		if(root == null)         // will return -1 if k is outside range also
+			return -1;
+		int leftAns = kthInorder(root.left, k);
+		if(leftAns != -1)
+			return leftAns;
+		if(count++ == k)
+			return root.data;
+		return kthInorder(root.right, k);
+	}
+	
+	/* For finding inorder successor using reverse inorder traversal and prev pointer. */
+	TreeNode prev_inorder = null;
+	public TreeNode inorderSuccessor3(TreeNode root, TreeNode node)
+	{
+		if(root == null)
+			return null;
+		TreeNode leftAns = inorderSuccessor3(root.right, node);
+		if(leftAns != null)
+			return leftAns;
+		if(root.data == node.data)
+			return prev_inorder;
+		prev_inorder = root;
+		return inorderSuccessor(root.left, node);
+	}
+	public TreeNode inorderSuccessor2(TreeNode root, TreeNode node)
+	{
+	    if(root == null || node == null)
+	    	return null;
+	    if(node.right != null)
+	    	return minValueNode(node.right);
+	    else
+	    {
+	    	TreeNode succ = null;
+	    	while(root != null){
+	    	  if(node.data < root.data)
+	    	  {
+	    	   	succ = root;
+	    	   	root = root.left;
+	    	  }
+	    	  else if(node.data > root.data)
+	    		  root = root.right;
+	    	  else
+	    		  break;
+	    	}
+	    	return succ;
+	    }
+	}
+	
+	/* For finding Inorder Successor using parent link. */
+	TreeNode parent = null;
+	public TreeNode inorderSuccessor(TreeNode root, TreeNode node)
+	{
+		if(node == null)
+			return null;
+		if(node.right != null)
+			return minValueNode(node.right);
+		else
+		{
+			TreeNode p = node.parent;
+			while(p != null && p.left == node)
+			{
+				p = p.parent;
+				node = p;
+			}
+			if(p == null)
+				return null;            // can also write return p; instead of if else.
+			else
+				return p;
+		}
+	}
+	public void printInorderFromLevelOrder(int[] arr)
+	{
+		int start = 0, end = arr.length-1;
+		printInorderFromLevelOrderUtil(arr, start, end);
+	}
+	public void printInorderFromLevelOrderUtil(int[] arr, int start, int end)
+	{
+		if(start > end)
+			return;
+		printInorderFromLevelOrderUtil(arr, start, 2*start + 1);
+		System.out.println(arr[start]);
+		printInorderFromLevelOrderUtil(arr, 2*start + 2, end);
+	}
+	public TreeNode lca(TreeNode root, int target1, int target2)
+	{
+		if(root == null)
+			return null;
+		if(target1 < root.data && target2 < root.data)
+			lca(root.left, target1, target2);
+		if(target1 > root.data && target2 > root.data)
+			lca(root.right, target1, target2);
+		return root;			
+	}
+	public TreeNode lcaIterative(TreeNode root, int target1, int target2)
+	{
+		while(root != null)
+		{
+			if(target1 < root.data && target2 < root.data)
+			   root = root.left;
+			if(target1 > root.data && target2 > root.data)
+				root = root.right;
+			else
+				break;
+		}
+		return root;
+	}
+	
+	/* For LCA method 2. Checking if the targets are actually present in the binary/bst tree */
+	static boolean visited1 = false, visited2 = false; 
+	static TreeNode leftLCA, rightLCA = null;
+	public TreeNode lca2(TreeNode root, int target1, int target2)
+	{
+		if(root == null)
+			return null;
+		TreeNode lca = lca2Util(root, target1, target2);
+		if((visited1 && visited2) || (visited1 && isPresent(leftLCA, target2)) || (visited2 && isPresent(rightLCA, target1)))
+				return lca;
+		else
+			return null;
+	}
+	public TreeNode lca2Util(TreeNode root, int target1, int target2)
+	{
+		if(root == null)
+			return null;
+		if(root.data == target1)
+		{
+			visited1 = true;
+			return root;
+		}
+		if(root.data == target2)
+		{
+			visited2 = true;
+			return root;
+		}
+		leftLCA = lca2Util(root.left, target1, target2);
+		rightLCA = lca2Util(root.right, target1, target2);
+		if(leftLCA != null && rightLCA != null)
+			return root;
+		else
+			return (leftLCA != null)? leftLCA: rightLCA;
+	}
+	public boolean isPresent(TreeNode root, int target)  // search() that return true or false
+	{
+		if(root == null)
+			return false;
+		if(root.data == target)
+			return true;
+		return isPresent(root.left, target) || isPresent(root.right, target);
+	}
+	
+	/* For checking if a tree is a BST . Method 2. Checking if the data is in ascending order, using prev. */
+    static TreeNode prev = null;
+	public static boolean isBST2(TreeNode root)
+	{
+		if(root != null){
+		if(isBST2(root.left) == false)    //we don't need to return true to the user if the value is true here coz' the right subtree is still to be checked. It might be false there.
+			return false; 
+		if(prev != null && prev.data > root.data){
+			return false;
+		}
+		prev = root;
+		if(isBST2(root.right) == false)   //After right subtree there is nothing to be traversed. So return whatever it returns, true or false. ie, it can also be written as return isBST2(root.right); But I already have return true at the bottom. So didn't do it.
+			return false;
+		}
+		return true;
+		
+	}
+	public static boolean isBST(TreeNode root)
+	{
+		return isBSTUtil(root, Integer.MIN_VALUE, Integer.MAX_VALUE);
+	}
+	public static boolean isBSTUtil(TreeNode root, int min, int max)
+	{
+		if(root == null)
+			return true;
+		if(root.data < min || root.data > max)
+			return false;
+		return isBSTUtil(root.left, min, root.data -1) && isBSTUtil(root.right, root.data+1, max);
+	}
+	public static TreeNode delete(TreeNode root, int target)
+	{
+		if(root == null)
+			return null;
+		if(target < root.data)
+			root.left = delete(root.left, target);
+		else if(target > root.data)
+			root.right = delete(root.right, target);
+		else
+		{
+			if(root.left == null)
+			{
+				TreeNode temp = root.right;
+				root = null;
+				return temp;
+			}
+			else if(root.right == null)
+			{
+				TreeNode temp = root.left;
+				root = null;
+				return temp;
+			}
+			else
+			{
+				TreeNode temp = minValueNode(root.right);
+				root.data = temp.data;
+				root.right = delete(root.right, temp.data);
+			}
+		}
+		return root;
+	}
+	public static TreeNode minValueNode(TreeNode root)
+	{
+		if(root == null)
+			return null;
+		TreeNode temp = root;
+		while(temp.left != null)
+			temp = temp.left;
+		return temp;
+	}
+	public static TreeNode searchBST(TreeNode root, int target)
+	{
+		if(root == null || root.data == target)
+			return root;
+		if(target < root.data)
+			return searchBST(root.left, target);
+		return searchBST(root.right, target);
+	}
+	public static TreeNode insert(TreeNode root, int data)
+	{
+		if(root == null)
+		{
+			root = new TreeNode(data);
+			return root;
+		}
+		if(data < root.data)
+			root.left = insert(root.left, data);
+		else
+			root.right = insert(root.right, data);
+		return root;
+	}
+	public TreeNode(int data)
+	{
+		this.data = data;
+		this.left = null;
+		this.right = null;
+	}
+	@Override
+	public String toString()
+	{
+		return ""+this.data;
+	}
+	public static void main(String[] args) {
+       TreeNode root = null;
+       root = insert(root, 5);
+       int[] arr1 = new int[]{2,3,4,5};
+       int[] arr2 = new int[]{1,5,6};
+       int[] result = mergeArray(arr1, arr2);
+       for(Integer i: result)
+    	   System.out.print(i);
+       //System.out.println(countBSTs(3));
+       /*insert(root, 5);
+       insert(root, 15);
+       insert(root, 3);
+       insert(root, 6);*/
+       //delete(root, 15);
+      /* root.left = new TreeNode(10);
+       root.right = new TreeNode(15);
+       root.left.left = new TreeNode(3);
+       //root.left.right = new TreeNode(6);
+       System.out.println(root);
+       System.out.println(root.left);
+       System.out.println(root.right);
+       System.out.println(root.left.left);
+       TreeNode temp = correctSwapNodesBST(root);
+       System.out.println("After correcting swapped nodes:");
+       System.out.println(temp);
+       System.out.println(temp.left);
+       System.out.println(temp.right);
+       System.out.println(temp.left.left); */
+       //System.out.println(temp.left.right);
+	}
+}
+class LinkedListNode
+{
+	int data;
+	LinkedListNode next;
+	LinkedListNode()
+	{
+		next = null;
+	}
+	public int countNodes(LinkedListNode node)
+	{
+		LinkedListNode temp = node;
+		int count = 0;
+		while(temp != null)
+		{
+			temp = temp.next;
+			count++;
+		}
+		return count;
+	}
+}
+class DoublyLinked
+{
+	int data;
+	DoublyLinked prev;
+	DoublyLinked next;
+	DoublyLinked()
+	{
+		prev = null;
+		next = null;
+	}
+	public int countNodes(DoublyLinked node)
+	{
+		DoublyLinked temp = node;
+		int count = 0;
+		while(temp != null)
+		{
+			temp = temp.next;
+			count++;
+		}
+		return count;
+	}
+}
