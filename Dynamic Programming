@@ -1,0 +1,596 @@
+package array;
+import java.util.*;
+public class Array {
+	public static int eggDropping2(int n, int k)                               //Time Complexity: O(n*(k^2))
+	{                                                                          //Auxiliary Space: O(nk)
+		int trials[][] = new int[n+1][k+1];
+		int i;
+		for(i=1; i<=n; i++)
+		{
+		   trials[i][0] = 0;
+		   trials[i][1] = 1;
+		}
+		for(i=1; i<=k; i++)
+			trials[1][i] = i;
+		int j, m, temp;
+		for(i=2; i<=n; i++)
+		{
+			for(j=2; j<=k; j++)
+			{
+				trials[i][j] = Integer.MAX_VALUE;
+				for(m=0; m<j; m++)
+				{
+					temp = 1 + Math.max(trials[n-1][m-1], trials[n][j-m]);
+					if(temp < trials[i][j])
+						trials[i][j] = temp;
+				}
+			}
+		}
+		return trials[n][k];
+	}
+	public static int eggDropping(int n, int k)
+	{
+		if(k == 0 || k == 1)
+			return k;
+		if(n == 1)
+			return k;
+		int minTrials = Integer.MAX_VALUE;
+		int temp;
+		for(int i=1; i<=k; i++)
+		{
+			temp = Math.max(eggDropping(n-1, i-1), eggDropping(n, k-i));
+			if(temp < minTrials)
+				minTrials = temp;
+		}
+		return minTrials + 1;
+	}
+	public static int cuttingRod2(int price[], int len)                            //Time Complexity: O(n^2)
+	{                                                                              //Auxiliary Space: O(n)
+		int val[] = new int[len+1];
+		val[0] = 0;
+		for(int i=1; i<=len; i++)
+		{
+			val[i] = Integer.MIN_VALUE;
+			for(int j=0; j<i; j++)
+			{
+				val[i] = Math.max(val[i], price[j] + val[i-j-1]);
+			}
+		}
+		return val[len];
+	}
+	public static int cuttingRod(int price[], int len)                              //Time Complexity: Exponential
+	{
+		if(len <= 0)
+			return 0;
+		int maxValue = Integer.MIN_VALUE;
+		for(int i=1; i<len; i++)
+		   maxValue = Math.max(maxValue, price[i] + cuttingRod(price, len-i-1));
+		return maxValue;	
+	}
+	public static int palindromePartition(char[] str)                               //Time Complexity: O(n^3)
+	{
+		boolean pal[][] = new boolean[str.length][str.length];
+		int cuts[][] = new int[str.length][str.length];
+		for(int i=0; i<str.length; i++)
+		{
+			pal[i][i] = true;
+			cuts[i][i] = 0;
+		}
+		int n = str.length;
+		int j;
+		for(int len=2; len<=n; len++)
+		{
+			for(int i=0; i<n-len+1; i++)
+			{
+				j = i+len-1;
+				if(len == 2)
+					pal[i][j] = (str[i] == str[j]);
+				else
+					pal[i][j] = (str[i] == str[j]) && (pal[i+1][j-1]);
+				if(pal[i][j] == true)
+					cuts[i][j] = 0;
+				else
+				{
+					cuts[i][j] = Integer.MAX_VALUE;
+					for(int k=i; k<=j; k++)
+						cuts[i][j] = Math.min(cuts[i][j], 1+cuts[i][k]+cuts[k+1][j]);
+				}
+			}
+		}
+		return cuts[0][n-1];
+	}
+	public static int longestPalindromicSubstring3(char[] str)                     //Time Complexity: O(n^2)
+	{                                                                              //Auxiliary Space: O(n^2)
+		char[] strRev;
+		strRev = stringReverse(str);
+		return longestCommonSubstring(str, strRev);
+	}
+	public static int longestCommonSubstring(char[] arr1, char[] arr2)
+	{
+		int lcs[][] = new int[arr1.length+1][arr2.length+1];
+		int m = arr1.length;
+		int n = arr2.length;
+		int maxLength = 0;
+		for(int i=0; i<=m; i++)
+		{
+			for(int j=0; j<=m ; j++)
+			{
+				if(i==0 || j==0)
+					lcs[i][j] = 0;
+				else if(arr1[i-1] == arr2[j-1])
+				{
+					lcs[i][j] = 1 + lcs[i-1][j-1];
+					if(maxLength < lcs[i][j])
+						maxLength = lcs[i][j];
+				}
+				else
+					lcs[i][j] = 0;
+			}
+		}
+		return maxLength;
+	}
+	public static int longestPalindromicSubstring2(char[] str)                          //Time Complexity: O(n^2)
+	{                                                                                   //Auxiliary Space: O(1)
+		int start = 0;
+		int maxLength = 1;
+		int n = str.length;
+		int low, high;
+		for(int i=1; i<n; i++)
+		{
+			low = i-1;     //Even Length Palindromes
+			high = i;
+			while(low >= 0 && high < n && str[low] == str[high])
+			{
+				if(maxLength < (high - low + 1))
+				{
+					start = low;
+					maxLength = high - low + 1;		
+				}
+				low--;
+				high++;
+			}
+			low = i-1;     //Odd Length Palindromes
+			high = i+1;
+			while(low >=0 && high < n && str[low] == str[high])
+			{
+				if(maxLength < (high - low + 1))
+				{
+					start = low;
+					maxLength = high - low + 1;
+				}
+				low--;
+				high++;
+			}
+		}
+		printSubstring(str, start, start+maxLength);
+		return maxLength;
+	}
+	public static int longestPalindromicSubstring(char[] str)
+	{
+		boolean lps[][] = new boolean[str.length][str.length];
+		int i;
+		int start = 0;
+		int maxLength = 1;
+		for(i=0; i<str.length; i++)
+			lps[i][i] = true;
+		for(i=0; i<str.length; i++)
+		{
+			if(str[i] == str[i+1])
+			{
+				lps[i][i+1] = true;
+				start = i;
+				maxLength = 2;
+			}
+		}
+		int n = str.length;
+		int j;
+		for(int len=3; len<=n; len++)
+		{
+			for(i=0; i<n-len+1; i++)
+			{
+				j = i+len-1;
+				if(str[i] == str[j] && lps[i+1][j-1] == true)
+				{
+					lps[i][j] = true;
+					if(maxLength < len)
+					{
+						start = i;
+						maxLength = len;
+					}
+				}
+			}
+		}
+		printSubstring(str, start, maxLength);
+		return maxLength;
+	}
+	public static void printSubstring(char str[], int start, int maxLength)
+	{
+		for(int i=start; i<start+maxLength; i++)
+			System.out.print(str[i]);
+	}
+	public static int longestPalindromicSubsequence3(char[] str)                        //Time Complexity: O(n^2)
+	{                                                                                   //Space Complexity: O(n^2)
+		char strRev[];
+		strRev = stringReverse(str);
+		return longestCommonSubsequence2(str, strRev);
+	}
+	public static char[] stringReverse(char str[])
+	{
+		int start = 0, end = str.length-1;
+		char temp;
+		while(start < end)
+		{
+			temp = str[start];
+			str[start] = str[end];
+			str[end] = temp;
+		}
+		return str;
+	}
+	public static int longestPalindromicSubsequence2(char[] str)                        //Time Complexity: O(n^2)
+	{                                                                                   //Space Complexity: O(n^2)
+		int n = str.length;
+		int lps[][] = new int[n][n];
+		for(int i=0; i<lps.length; i++)
+			lps[i][i] = 1;
+		int j;
+		for(int wid=2; wid<=n; wid++)
+		{
+			for(int i=0; i<n-wid+1; i++)
+			{
+				j = i + wid - 1;
+			    if(wid == 2 && str[i] == str[j])
+			    	lps[i][j] = 2;
+			    else if(str[i] == str[j])
+			    	lps[i][j] = 2 + lps[i+1][j-1];
+			    else
+			    	lps[i][j] = Math.max(lps[i+1][j], lps[i][j-1]);
+		    }
+		}
+		return lps[0][n-1];
+	}
+	public static int longestPalindromicSubsequence(char str[], int i, int j)            //Time Complexity: O(2^n) Exponential   
+	{
+		if(i == j)
+			return 1;
+		if(str[i] == str[j] && i == j + 1)
+			return 2;
+		else if(str[i] == str[j])
+			return 2 + longestPalindromicSubsequence(str, i+1, j-1);
+		return Math.max(longestPalindromicSubsequence(str, i+1, j), longestPalindromicSubsequence(str, i, j-1));
+	}
+	public static int knapsack2(int w, int val[], int wt[], int n)                            //Time Complexity: O(nw)
+	{                                                                                         //Dynamic Programming
+		int kp[][] = new int[n+1][w+1];
+		for(int i=0; i<=n; i++)
+		{
+			for(int j=0; j<=w; j++)
+			{
+				if(i == 0 || j == 0)
+					kp[i][j] = 0;
+				else if(wt[i-1] > w)
+					kp[i][j] = kp[i-1][j];
+				else
+					kp[i][j] = Math.max(val[i-1] + kp[i-1][j-wt[i-1]], kp[i-1][j]);
+			}
+		}
+		return kp[n][w];
+	}
+	public static int knapsack(int w, int val[], int wt[], int n)                           //Time Complexity: O(2^n) Exponential
+	{ 
+		if(n == 0 || w == 0)
+			return 0;
+		if(wt[n-1] > w)
+			return knapsack(w, val, wt, n-1);
+		return Math.max(val[n-1] + knapsack(w-wt[n-1], val, wt, n-1), knapsack(w, val, wt, n-1));
+	}
+	public static boolean isPartition2(int arr[])                               //Time Complexity: O(sum * n)
+	{                                                                           //Auxiliary Space: O(sum * n)   -- this method is not feasible for arrays with large sum
+		int sum = 0;                                                            //Dynamic Programming
+		int i;
+		for(i=0; i<arr.length; i++)
+			sum += arr[i];
+		if(sum % 2 != 0)
+			return false;
+		int n = arr.length;
+		boolean part[][] = new boolean[sum/2 + 1][n + 1];
+		for(i=0; i<=n; i++)
+			part[0][i] = true;
+		for(i=1; i<=sum/2; i++)
+			part[i][0] = false;
+		for(i=1; i<=sum/2; i++)
+		{
+			for(int j=1; j<=n; j++)
+			{
+				if(arr[j-1] > i)                                              //i is the sum (rows), j is the number in the array (cols) 
+				    part[i][j] = part[i][j-1];
+				else
+					part[i][j] = part[i][j-1] || part[i-arr[j-1]][j-1];
+			}
+		}
+		return part[sum/2][n];
+	}
+	public static boolean isPartition(int arr[])                                //Time Complexity: O(2 ^ n) -- There are two choices - include and exclude for each element.
+	{
+		int sum = 0;
+		for(int i=0; i<arr.length; i++)
+			sum += arr[i];
+		if(sum % 2 != 0)
+			return false;
+		return findSubsetSum(arr, arr.length, sum/2);
+	}
+	public static boolean findSubsetSum(int arr[], int n, int sum)
+	{
+		if(sum == 0)
+			return true;
+		if(n == 0 && sum != 0)
+			return false;
+		if(arr[n-1] > sum)
+			return findSubsetSum(arr, n-1, sum);
+		return findSubsetSum(arr, n-1, sum) || findSubsetSum(arr, n-1, sum-arr[n-1]);
+	}
+	public static int maxChainLength3(Pair arr[])
+	{
+		Pair currentActivity = arr[0];
+		int activityCount = 1;
+		for(int i=1; i<arr.length; i++)
+		{
+			if(currentActivity.b < arr[i].a)
+			{
+				currentActivity = arr[i];
+				activityCount++;
+			}
+		}
+		return activityCount;
+	}
+	
+	static int maxMcl = Integer.MIN_VALUE;
+	public static int maxChainLength2(Pair arr[], int n)                          //check
+	{
+		if(n == 1)
+			return 1;
+		int maxEndingHere = Integer.MIN_VALUE;
+		for(int i=1; i<arr.length; i++)
+		{
+			int mclTemp = maxChainLength2(arr, i);
+			if(arr[i-1].b < arr[n-1].a && maxEndingHere < mclTemp + 1)
+				maxEndingHere = mclTemp + 1;
+		}
+		if(maxMcl < maxEndingHere)
+			maxMcl = maxEndingHere;
+		return maxMcl;
+	}
+	public static int maxChainLength(Pair arr[])                               //Time Complexity: O(n ^ 2)
+	{
+		int mcl[] = new int[arr.length];
+		int i;
+		for(i=0; i<arr.length; i++)
+			mcl[i] = 1;
+		for(i=1; i<arr.length; i++)
+		{
+			for(int j=0; j<i; j++)
+			{
+				if(arr[j].b < arr[i].a && mcl[i] < mcl[j] + 1)
+					mcl[i] = mcl[j] + 1;
+			}
+		}
+		int maxMcl = Integer.MIN_VALUE;
+		for(i=0; i<mcl.length; i++)
+		{
+			if(maxMcl < mcl[i])
+				maxMcl = mcl[i];
+		}
+		return maxMcl;
+	}
+	static int maxMsis = Integer.MIN_VALUE;
+	public static int maxSumIncreasingSubsequence2(int arr[], int n)                  //check
+	{
+		if(n == 1)
+			return arr[0];
+		int maxEndingHere = Integer.MIN_VALUE;
+		for(int i=1; i<n; i++)
+		{
+			int msisTemp = maxSumIncreasingSubsequence2(arr, i);
+			if(arr[i-1] < arr[n-1] && maxEndingHere < msisTemp + arr[i])
+				maxEndingHere = msisTemp + arr[i];
+		}
+		if(maxMsis < maxEndingHere)
+			maxMsis = maxEndingHere;
+		return maxEndingHere;
+	}
+	public static int maxSumIncreasingSubsequence(int arr[])                             //Time Complexity: O(n ^ 2)
+	{                                                                                    //Dynamic Programming - Tabulation
+		int msis[] = new int[arr.length];
+		int i;
+		for(i=0; i<arr.length; i++)
+			msis[i] = arr[i];
+		for(i=1; i<arr.length; i++)
+		{
+			for(int j=0; j<i; j++)
+			{
+				if(arr[j] < arr[i] && msis[i] < msis[j] + arr[i])
+					msis[i] = msis[j] + arr[i];
+			}
+		}
+		int maxMsis = Integer.MIN_VALUE;
+		for(i=0; i<msis.length; i++)
+		{
+			if(maxMsis < msis[i])
+				maxMsis = msis[i];
+		}
+		return maxMsis;
+	}
+	public static int longestBitonicSubsequence(int arr[])
+	{
+		int lis[] = new int[arr.length];
+		int i;
+		for(i=0; i<arr.length; i++)
+			lis[i] = 1;
+		for(i=1; i<arr.length; i++)
+		{
+			for(int j=0; j<i; j++)
+			{
+				if(arr[j] < arr[i] && lis[i] < lis[j] + 1)
+					lis[i] = lis[j] + 1;
+			}
+		}
+		int lds[] = new int[arr.length];
+		for(i=0; i<arr.length; i++)
+			lds[i] = 1;
+		for(i=arr.length-2; i>=0; i--)
+		{
+			for(int j=arr.length-1; j>i; j--)
+			{
+				if(arr[j] < arr[i] && lds[i] < lds[j] + 1)
+					lds[i] = lds[j] + 1;
+			}
+		}
+		int maxBitonicLength = Integer.MIN_VALUE;
+		for(i=0; i<arr.length; i++)
+		{
+			if(maxBitonicLength < lis[i] + lds[i] - 1)
+				maxBitonicLength = lis[i] + lds[i] - 1;
+		}
+		return maxBitonicLength;
+	}
+	
+	static int lcs3[][];
+	public static int longestCommonSubsequence3(char arr1[], char arr2[])
+	{                                                                                                      //Dynamic Programming - Memoization
+		lcs3 = new int[arr1.length+1][arr2.length+1];
+		for(int i=0; i<lcs3.length; i++)
+			for(int j=0; j<arr2.length; j++)
+			   lcs3[i][j] = -1;
+		return longestCommonSubsequence3Util(arr1, arr2, arr1.length, arr2.length, 0, 0);
+	}
+	public static int longestCommonSubsequence3Util(char arr1[], char arr2[], int m, int n, int i, int j)
+	{
+		if(lcs3[i][j] == -1)
+		{
+			if(i == m || j == n)
+				lcs3[i][j] = 0;
+			else if(arr1[i] == arr2[j])
+				lcs3[i][j] = 1 + longestCommonSubsequence3Util(arr1, arr2, m, n, i+1, j+1);
+			else
+				lcs3[i][j] = Math.max(longestCommonSubsequence3Util(arr1, arr2, m, n, i+1, j), longestCommonSubsequence3Util(arr1, arr2, m , n, i, j+1));
+		}
+		return lcs3[i][j];
+	}
+	public static int longestCommonSubsequence2(char arr1[], char arr2[])                            //Time Complexity: O(mn)
+	{                                                                                                //Dynamic Programming: Tabulation
+		int m = arr1.length, n = arr2.length;
+		int lcs[][] = new int[m+1][n+1];
+		for(int i=0; i<=m ; i++)
+		{
+			for(int j=0; j<=n; j++)
+			{
+				if(i == 0 || j == 0)
+					lcs[i][j] = 0;
+				else if(arr1[i-1] == arr2[j-1])
+					lcs[i][j] = 1 + lcs[i-1][j-1];
+				else
+					lcs[i][j] = Math.max(lcs[i-1][j], lcs[i][j-1]);
+			}
+		}
+		return lcs[m][n];
+	}
+	public static int longestCommonSubsequence(char arr1[], char arr2[], int m, int n)              //Time Complexity: O(2 ^ n)
+	{
+		if(m == 0 || n == 0)
+			return 0;
+		if(arr1[m-1] == arr2[n-1])
+			return 1 + longestCommonSubsequence(arr1, arr2, m-1, n-1);
+		else
+			return Math.max(longestCommonSubsequence(arr1, arr2, m-1, n), longestCommonSubsequence(arr1, arr2, m, n-1));
+	}
+	public static int longestDecreasingSubsequence(int arr[])
+	{
+		int lds[] = new int[arr.length];
+		int i;
+		for(i=0; i<arr.length; i++)
+			lds[i] = 1;
+		for(i=arr.length-2; i>=0; i++)                                              //Note: (i>=0) is correct. verify output.
+		{
+			for(int j=arr.length-1; j>i; j--)
+			{
+				if(arr[j] < arr[i] && lds[i] < lds[j] + 1)
+					lds[i] = lds[j] + 1;
+			}
+		}
+		int maxLds = Integer.MIN_VALUE;
+		for(i=0; i<lds.length; i++)
+			if(maxLds < lds[i])
+				maxLds = lds[i];
+		return maxLds;
+	}
+	public static int longestIncreasingSubsequence2(int arr[])
+	{
+		int lis[] = new int[arr.length];
+		int i;
+		for(i=0; i<lis.length; i++)
+			lis[i] = 1;
+		for(i=1; i<arr.length; i++)
+		{
+			for(int j=0; j<i; j++)
+			{
+				if(arr[j] < arr[i] && lis[i] < lis[j] + 1)
+					lis[i] = lis[j] + 1;
+			}
+		}
+		int maxLis = Integer.MIN_VALUE;
+		for(i=0; i<lis.length; i++)
+			if(maxLis < lis[i])
+				maxLis = lis[i];
+		return maxLis;
+	}
+	
+	static int maxLis = Integer.MIN_VALUE;
+	public static int longestIncreasingSubsequence(int arr[], int n)
+	{
+		if(n == 1)
+			return 1;
+		int maxEndingHere = Integer.MIN_VALUE;
+		for(int i=1; i<n; i++)
+		{
+			int lisTemp = longestIncreasingSubsequence(arr, i);
+			if(arr[i-1] < arr[n-1] && maxEndingHere < lisTemp + 1)
+				maxEndingHere = lisTemp + 1;
+		}
+		if(maxLis < maxEndingHere)
+			maxLis = maxEndingHere;
+		return maxEndingHere;
+	}
+	public static int fibonacci3(int n)
+	{
+		int fib[] = new int[n+1];                                                                    //Dynamic Programming - Tabulation - all values stored
+		fib[0] = 0;
+		fib[1] = 1;
+		for(int i=2; i<=n; i++)
+			fib[i] = fib[i-1] + fib[i-2];
+		return fib[n-1];
+	}
+	static int fib[];
+	public static int fibonacci2(int n)
+	{
+		fib = new int[n+1];
+		for(int i=0; i<=n; i++)
+			fib[i] = -1;
+		return fibonacci2Util(n);
+	}
+	public static int fibonacci2Util(int n)                                                             //Dynamic Programming - Memoization - on demand - not all values stored 
+	{
+		if(fib[n] == -1)
+		{
+			if(n <= 1)
+				fib[n] = n;
+			else
+				fib[n] = fibonacci2Util(n-1) + fibonacci2Util(n-2);
+		}
+		return fib[n];
+	}
+	public static int fibonacci(int n)
+	{
+		if(n <= 1)
+			return 0;
+		return fibonacci(n-1) + fibonacci(n-2);
+	}
+	}
